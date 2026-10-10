@@ -1,0 +1,96 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Manrope", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 14px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-cold: var(--cold);
+  --color-warm: var(--warm);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.17 0.03 240);
+  --foreground: oklch(0.97 0.01 230);
+  --card: oklch(0.24 0.035 238 / 0.55);
+  --card-foreground: oklch(0.97 0.01 230);
+  --popover: oklch(0.22 0.035 238);
+  --popover-foreground: oklch(0.97 0.01 230);
+  --primary: oklch(0.82 0.15 75);
+  --primary-foreground: oklch(0.2 0.03 240);
+  --secondary: oklch(0.3 0.04 235);
+  --secondary-foreground: oklch(0.95 0.01 230);
+  --muted: oklch(0.28 0.03 235);
+  --muted-foreground: oklch(0.72 0.03 230);
+  --accent: oklch(0.75 0.12 210);
+  --accent-foreground: oklch(0.18 0.03 240);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.14);
+  --ring: oklch(0.82 0.15 75);
+  --cold: oklch(0.75 0.12 220);
+  --warm: oklch(0.78 0.16 55);
+  --sky-day: radial-gradient(1200px 600px at 80% -10%, oklch(0.55 0.13 230 / 0.6), transparent 60%), radial-gradient(800px 500px at 0% 100%, oklch(0.6 0.15 70 / 0.25), transparent 60%);
+  --sky-night: radial-gradient(1200px 600px at 80% -10%, oklch(0.35 0.1 270 / 0.6), transparent 60%), radial-gradient(800px 500px at 0% 100%, oklch(0.4 0.1 220 / 0.3), transparent 60%);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3 { font-family: var(--font-display); }
+}
+
+@utility glass {
+  background: var(--card);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+}
+@utility sky-day { background-image: var(--sky-day); }
+@utility sky-night { background-image: var(--sky-night); }
+@utility fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility float-slow { animation: float 6s ease-in-out infinite; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
