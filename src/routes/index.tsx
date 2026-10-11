@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { describe, getForecast, searchPlaces, type Forecast, type Place } from "@/lib/weather";
 
 type Search = { lat: number; lon: number; name: string; unit: "celsius" | "fahrenheit" };
@@ -48,7 +49,7 @@ function Dashboard() {
   const toggleFav = () => {
     const next = isFav
       ? favs.filter((f) => !(f.latitude === search.lat && f.longitude === search.lon))
-      : [...favs, { id: Date.now(), name: search.name.split(",")[0], country: search.name.split(", ")[1], latitude: search.lat, longitude: search.lon }];
+      : [...favs, { id: Date.now(), name: search.name.split(",")[0] ?? search.name, country: search.name.split(", ")[1], latitude: search.lat, longitude: search.lon }];
     setFavs(next);
     localStorage.setItem(FAV_KEY, JSON.stringify(next));
   };
@@ -64,22 +65,22 @@ function Dashboard() {
   const u = search.unit === "celsius" ? "°C" : "°F";
 
   return (
-    <div className={`min-h-screen ${day ? "sky-day" : "sky-night"} transition-all`}>
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-3xl float-slow">🌤️</span>
-            <h1 className="text-2xl font-bold tracking-tight">Skycast</h1>
+    <div className={`skycast min-h-screen ${day ? "sky-day" : "sky-night"} transition-all`}>
+      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        <header className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,36rem)] lg:items-center">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0 text-3xl float-slow">🌤️</span>
+            <h1 className="truncate text-2xl font-bold">Skycast</h1>
           </div>
-          <div className="flex flex-1 items-center gap-2 sm:max-w-xl">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
             <CitySearch onPick={go} />
-            <button onClick={locate} title="Use my location" className="glass h-11 shrink-0 px-3 text-sm hover:bg-secondary">📍</button>
-            <div className="glass flex h-11 shrink-0 overflow-hidden p-1 text-sm">
+            <Button variant="ghost" onClick={locate} title="Use my location" aria-label="Use my location" className="glass h-11 w-11 shrink-0 justify-self-start p-0 text-sm hover:bg-secondary">📍</Button>
+            <div role="group" aria-label="Temperature unit" className="glass flex h-11 shrink-0 justify-self-end overflow-hidden p-1 text-sm">
               {(["celsius", "fahrenheit"] as const).map((x) => (
-                <button key={x} onClick={() => navigate({ search: (s) => ({ ...s, unit: x }) })}
-                  className={`rounded-xl px-3 transition ${search.unit === x ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                <Button variant="ghost" key={x} aria-pressed={search.unit === x} onClick={() => navigate({ search: (s) => ({ ...s, unit: x }) })}
+                  className={`h-full rounded-xl px-3 transition ${search.unit === x ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}>
                   {x === "celsius" ? "°C" : "°F"}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -88,19 +89,19 @@ function Dashboard() {
         {favs.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
             {favs.map((f) => (
-              <button key={`${f.latitude},${f.longitude}`} onClick={() => go(f)}
-                className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-sm hover:bg-secondary">★ {f.name}</button>
+               <Button variant="ghost" key={`${f.latitude},${f.longitude}`} onClick={() => go(f)}
+                className="h-auto min-h-11 max-w-full whitespace-normal rounded-full border border-border bg-secondary/60 px-3 py-2 text-sm hover:bg-secondary"><span className="min-w-0 break-words">★ {f.name}</span></Button>
             ))}
           </div>
         )}
 
-        <main className="mt-8">
+        <main className="mt-6 min-w-0 sm:mt-8">
           {q.isPending && <Skeleton />}
           {q.isError && (
             <div className="glass p-8 text-center">
               <p className="text-lg font-semibold">Couldn't load the weather.</p>
               <p className="mt-1 text-sm text-muted-foreground">{(q.error as Error).message}</p>
-              <button onClick={() => q.refetch()} className="mt-4 rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground">Try again</button>
+               <Button onClick={() => q.refetch()} className="mt-4 h-11 rounded-xl px-4 font-semibold">Try again</Button>
             </div>
           )}
           {q.data && <Content key={`${search.lat}${search.lon}`} data={q.data} name={search.name} u={u} isFav={isFav} toggleFav={toggleFav} />}
@@ -122,21 +123,21 @@ function CitySearch({ onPick }: { onPick: (p: Place) => void }) {
   const r = useQuery({ queryKey: ["places", deb], queryFn: () => searchPlaces(deb), enabled: deb.length >= 2 });
 
   return (
-    <div className="relative flex-1">
+    <div className="relative col-span-2 min-w-0 sm:col-span-1">
       <input value={text} onChange={(e) => { setText(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)} placeholder="Search a city…" aria-label="Search a city"
         className="glass h-11 w-full px-4 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring" />
       {open && deb.length >= 2 && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-popover shadow-2xl">
+        <div className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl">
           {r.isFetching && <p className="px-4 py-3 text-sm text-muted-foreground">Searching…</p>}
           {r.isError && <p className="px-4 py-3 text-sm text-destructive">Search failed. Try again.</p>}
           {r.data?.length === 0 && !r.isFetching && <p className="px-4 py-3 text-sm text-muted-foreground">No cities found.</p>}
           {r.data?.map((p) => (
-            <button key={p.id} onMouseDown={() => { onPick(p); setText(""); setOpen(false); }}
-              className="block w-full px-4 py-3 text-left text-sm hover:bg-secondary">
-              <span className="font-semibold">{p.name}</span>
-              <span className="text-muted-foreground"> · {[p.admin1, p.country].filter(Boolean).join(", ")}</span>
-            </button>
+            <Button variant="ghost" key={p.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(p); setText(""); setOpen(false); }}
+              className="block h-auto min-h-11 w-full whitespace-normal rounded-none px-4 py-3 text-left text-sm hover:bg-secondary">
+              <span className="block break-words font-semibold">{p.name}</span>
+              <span className="block break-words text-muted-foreground">{[p.admin1, p.country].filter(Boolean).join(", ")}</span>
+            </Button>
           ))}
         </div>
       )}
@@ -150,26 +151,26 @@ function Content({ data, name, u, isFav, toggleFav }: { data: Forecast; name: st
   const time = (iso: string) => iso.slice(11, 16);
   const nowIdx = Math.max(0, data.hourly.time.findIndex((t) => t >= c.time.slice(0, 13)));
   const hours = data.hourly.time.slice(nowIdx, nowIdx + 24).map((t, i) => ({
-    t, temp: data.hourly.temperature_2m[nowIdx + i], rain: data.hourly.precipitation_probability[nowIdx + i] ?? 0,
+    t, temp: data.hourly.temperature_2m[nowIdx + i] ?? 0, rain: data.hourly.precipitation_probability[nowIdx + i] ?? 0,
   }));
 
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <section className="glass fade-up p-6 sm:p-8 lg:col-span-2">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+    <div className="grid min-w-0 gap-4 sm:gap-5 lg:grid-cols-3">
+      <section className="glass fade-up min-w-0 p-4 sm:p-8 lg:col-span-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+          <div className="min-w-0">
             <p className="text-sm text-muted-foreground">Now in</p>
-            <h2 className="text-2xl font-semibold sm:text-3xl">{name}</h2>
+            <h2 className="break-words text-xl font-semibold sm:text-3xl">{name}</h2>
           </div>
-          <button onClick={toggleFav} aria-label="Save city" className={`rounded-full border border-border px-3 py-1 text-sm ${isFav ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>
+          <Button variant="ghost" onClick={toggleFav} aria-label="Save city" aria-pressed={isFav} className={`h-11 shrink-0 rounded-full border border-border px-3 text-sm ${isFav ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "hover:bg-secondary"}`}>
             {isFav ? "★ Saved" : "☆ Save"}
-          </button>
+          </Button>
         </div>
-        <div className="mt-6 flex items-center gap-6">
-          <span className="text-7xl sm:text-8xl float-slow">{d.icon}</span>
-          <div>
-            <p className="font-display text-6xl font-bold sm:text-7xl">{Math.round(c.temperature_2m)}{u}</p>
-            <p className="text-muted-foreground">{d.label} · feels like {Math.round(c.apparent_temperature)}{u}</p>
+        <div className="mt-6 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+          <span className="shrink-0 text-5xl sm:text-8xl float-slow">{d.icon}</span>
+          <div className="min-w-0">
+            <p className="font-display text-5xl font-bold tabular-nums sm:text-7xl">{Math.round(c.temperature_2m)}<span className="text-2xl sm:text-4xl">{u}</span></p>
+            <p className="mt-1 break-words text-sm text-muted-foreground sm:text-base">{d.label} · feels like {Math.round(c.apparent_temperature)}{u}</p>
           </div>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -180,32 +181,32 @@ function Content({ data, name, u, isFav, toggleFav }: { data: Forecast; name: st
         </div>
       </section>
 
-      <section className="glass fade-up p-6" style={{ animationDelay: "80ms" }}>
+      <section className="glass fade-up min-w-0 p-4 sm:p-6" style={{ animationDelay: "80ms" }}>
         <h3 className="font-semibold">Sun</h3>
-        <div className="mt-4 space-y-4">
-          <Stat label="Sunrise" value={time(data.daily.sunrise[0])} />
-          <Stat label="Sunset" value={time(data.daily.sunset[0])} />
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <Stat label="Sunrise" value={time(data.daily.sunrise[0] ?? "")} />
+          <Stat label="Sunset" value={time(data.daily.sunset[0] ?? "")} />
           <Stat label="Rain chance today" value={`${data.daily.precipitation_probability_max[0] ?? 0}%`} />
         </div>
       </section>
 
-      <section className="glass fade-up p-6 lg:col-span-3" style={{ animationDelay: "140ms" }}>
+      <section className="glass fade-up min-w-0 p-4 sm:p-6 lg:col-span-3" style={{ animationDelay: "140ms" }}>
         <h3 className="font-semibold">Next 24 hours</h3>
         <HourlyChart hours={hours} u={u} />
       </section>
 
-      <section className="glass fade-up p-6 lg:col-span-3" style={{ animationDelay: "200ms" }}>
+      <section className="glass fade-up min-w-0 p-4 sm:p-6 lg:col-span-3" style={{ animationDelay: "200ms" }}>
         <h3 className="font-semibold">7-day forecast</h3>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {data.daily.time.map((t, i) => {
-            const dd = describe(data.daily.weather_code[i]);
+            const dd = describe(data.daily.weather_code[i] ?? 0);
             return (
-              <div key={t} className="rounded-2xl bg-secondary/50 p-4 text-center transition hover:-translate-y-1 hover:bg-secondary">
+              <div key={t} className="min-w-0 rounded-2xl bg-secondary/50 p-3 text-center transition hover:-translate-y-1 hover:bg-secondary sm:p-4">
                 <p className="text-sm text-muted-foreground">{i === 0 ? "Today" : new Date(t + "T12:00").toLocaleDateString("en", { weekday: "short" })}</p>
                 <p className="my-2 text-3xl">{dd.icon}</p>
                 <p className="text-sm font-semibold">
-                  <span className="text-warm">{Math.round(data.daily.temperature_2m_max[i])}°</span>{" "}
-                  <span className="text-cold">{Math.round(data.daily.temperature_2m_min[i])}°</span>
+                  <span className="text-warm">{Math.round(data.daily.temperature_2m_max[i] ?? 0)}°</span>{" "}
+                  <span className="text-cold">{Math.round(data.daily.temperature_2m_min[i] ?? 0)}°</span>
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">💧 {data.daily.precipitation_probability_max[i] ?? 0}%</p>
               </div>
@@ -219,9 +220,9 @@ function Content({ data, name, u, isFav, toggleFav }: { data: Forecast; name: st
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-secondary/50 p-3">
+    <div className="min-w-0 rounded-2xl bg-secondary/50 p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-lg font-semibold">{value}</p>
+      <p className="mt-1 break-words font-display text-base font-semibold sm:text-lg">{value}</p>
     </div>
   );
 }
@@ -235,8 +236,9 @@ function HourlyChart({ hours, u }: { hours: { t: string; temp: number; rain: num
   const line = hours.map((h, i) => `${i ? "L" : "M"}${x(i)},${y(h.temp)}`).join(" ");
   const area = `${line} L${x(hours.length - 1)},${H - P} L${x(0)},${H - P} Z`;
   return (
-    <div className="mt-4 overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H + 20}`} className="min-w-[640px] w-full">
+    <div className="mt-4 min-w-0">
+      <div tabIndex={0} role="region" aria-label="Hourly temperature and rain chart" className="max-w-full overflow-x-auto overscroll-x-contain rounded-md focus-visible:outline-2 focus-visible:outline-ring">
+      <svg role="img" aria-label="Temperature and rain chance over the next 24 hours" viewBox={`0 0 ${W} ${H + 20}`} className="block w-full min-w-[640px]">
         <defs>
           <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.45" />
@@ -256,6 +258,7 @@ function HourlyChart({ hours, u }: { hours: { t: string; temp: number; rain: num
           </g>
         ))}
       </svg>
+      </div>
       <p className="mt-2 text-xs text-muted-foreground">Line: temperature · Bars: chance of rain</p>
     </div>
   );
